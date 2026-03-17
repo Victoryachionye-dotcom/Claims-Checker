@@ -18,7 +18,7 @@ As an AI engineer working at the intersection of these two disciplines, the resu
 
 ## n8n Workflow
 
-![n8n Workflow — Agentic Healthcare Claims Engine](assets/Screenshot%202026-03-17%20at%205.01.52%20PM.png)
+![n8n Workflow — Agentic Healthcare Claims Engine](assets/n8n_workflow.png)
 
 ---
 
