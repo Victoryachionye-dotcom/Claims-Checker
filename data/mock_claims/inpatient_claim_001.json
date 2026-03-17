@@ -1,0 +1,68 @@
+{
+  "claim_id": "CLM-2024-001",
+  "claim_type": "outpatient",
+  "service_date": "2024-03-15",
+  "total_amount": 1250.00,
+  "prior_authorization_number": null,
+  "patient": {
+    "id": "PAT-12345",
+    "name": "John Smith",
+    "dob": "1965-08-22",
+    "member_id": "MEM-98765"
+  },
+  "provider": {
+    "npi": "1234567890",
+    "name": "Dr. Jane Wilson",
+    "specialty": "Pain Management"
+  },
+  "insurance": {
+    "payer_id": "BCBS-001",
+    "payer_name": "Blue Cross Blue Shield",
+    "plan_id": "PPO-2024",
+    "group_number": "GRP-5678",
+    "member_id": "MEM-98765"
+  },
+  "diagnoses": [
+    {
+      "sequence": 1,
+      "code": "M54.4",
+      "description": "Lumbago with sciatica, right side"
+    },
+    {
+      "sequence": 2,
+      "code": "M51.16",
+      "description": "Intervertebral disc degeneration, lumbar region"
+    },
+    {
+      "sequence": 3,
+      "code": "G54.4",
+      "description": "Lumbosacral root disorders, not elsewhere classified"
+    }
+  ],
+  "procedures": [
+    {
+      "code": "62323",
+      "description": "Injection(s), of diagnostic or therapeutic substance(s), epidural or subarachnoid; lumbar or sacral (caudal)",
+      "quantity": 1,
+      "unit_price": 1250.00
+    }
+  ],
+  "clinical_notes": [
+    {
+      "note_type": "history",
+      "content": "Patient is a 58-year-old male presenting with a 6-week history of lower back pain with radiation down the right leg to the knee. Pain severity rated 7/10. Patient reports difficulty with prolonged standing and walking. Has been taking ibuprofen 600mg TID with partial relief."
+    },
+    {
+      "note_type": "examination",
+      "content": "Positive straight leg raise at 45 degrees on the right. Decreased sensation in the L4 dermatomal distribution. Mild weakness of right foot dorsiflexion. Lumbar range of motion restricted in flexion and extension secondary to pain."
+    },
+    {
+      "note_type": "radiology",
+      "content": "MRI Lumbar Spine (2024-03-01): L4-L5 disc herniation with right paracentral protrusion, moderate right foraminal stenosis with impingement of the right L4 nerve root. Mild L3-L4 disc bulge without significant stenosis."
+    },
+    {
+      "note_type": "assessment",
+      "content": "Right-sided lumbosacral radiculopathy secondary to L4-L5 disc herniation confirmed on MRI. Patient has failed 6 weeks of conservative management including NSAIDs and activity modification. No formal physical therapy course documented. Recommending lumbar epidural steroid injection for pain management."
+    }
+  ]
+}

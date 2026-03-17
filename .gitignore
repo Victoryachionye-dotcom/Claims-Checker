@@ -1,0 +1,94 @@
+# =============================================================================
+# Healthcare Claims RAG Engine — .gitignore
+# NEVER commit API keys, patient data, or large binary files.
+# =============================================================================
+
+# --- Secrets & Credentials (NEVER commit) ---
+.env
+*.pem
+*.key
+*.p12
+*.pfx
+*_rsa
+*_rsa.pub
+id_rsa*
+credentials.json
+service_account*.json
+
+# --- Patient Data & Batch Outputs (may contain PHI) ---
+data/batch_input/*.csv
+data/batch_output/
+data/reports/
+data/hold_queue/
+
+# --- Vector Store (large binary, regenerated via ingest_policies.py) ---
+data/vector_store/
+
+# --- CMS Policy PDFs (large binaries — store in shared drive, not git) ---
+data/policy_kb/*.pdf
+
+# --- Mock claims with real-looking data ---
+# Keep .gitignore for structure but exclude any real patient files dropped here
+# data/mock_claims/*.json   ← kept in repo as test fixtures (anonymized only)
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+.Python
+
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+nosetests.xml
+test-results/
+
+# --- IDE & Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# --- Logs ---
+*.log
+logs/
+*.log.*
+
+# --- Docker ---
+.docker/
+
+# --- Node (if any frontend tooling is added later) ---
+node_modules/
+npm-debug.log*

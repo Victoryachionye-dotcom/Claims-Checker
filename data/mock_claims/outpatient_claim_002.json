@@ -1,0 +1,76 @@
+{
+  "claim_id": "CLM-2024-002",
+  "claim_type": "outpatient",
+  "service_date": "2024-04-10",
+  "total_amount": 3800.00,
+  "prior_authorization_number": "PA-2024-88991",
+  "patient": {
+    "id": "PAT-67890",
+    "name": "Maria Gonzalez",
+    "dob": "1958-03-14",
+    "member_id": "MEM-44321"
+  },
+  "provider": {
+    "npi": "9876543210",
+    "name": "Dr. Robert Chen",
+    "specialty": "Cardiology"
+  },
+  "insurance": {
+    "payer_id": "AETNA-001",
+    "payer_name": "Aetna",
+    "plan_id": "HMO-GOLD-2024",
+    "group_number": "GRP-1122",
+    "member_id": "MEM-44321"
+  },
+  "diagnoses": [
+    {
+      "sequence": 1,
+      "code": "I25.10",
+      "description": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+    },
+    {
+      "sequence": 2,
+      "code": "I10",
+      "description": "Essential (primary) hypertension"
+    },
+    {
+      "sequence": 3,
+      "code": "E11.9",
+      "description": "Type 2 diabetes mellitus without complications"
+    }
+  ],
+  "procedures": [
+    {
+      "code": "93306",
+      "description": "Echocardiography, transthoracic, real-time with image documentation (2D), includes M-mode recording, when performed, complete, with spectral Doppler echocardiography, and with color flow Doppler echocardiography",
+      "quantity": 1,
+      "unit_price": 1800.00
+    },
+    {
+      "code": "93000",
+      "description": "Electrocardiogram, routine ECG with at least 12 leads; with interpretation and report",
+      "quantity": 1,
+      "unit_price": 200.00
+    },
+    {
+      "code": "93015",
+      "description": "Cardiovascular stress test using maximal or submaximal treadmill or bicycle exercise, continuous electrocardiographic monitoring, and/or pharmacological stress; with supervision, interpretation and report",
+      "quantity": 1,
+      "unit_price": 1800.00
+    }
+  ],
+  "clinical_notes": [
+    {
+      "note_type": "history",
+      "content": "Patient is a 66-year-old female with known CAD, hypertension, and type 2 diabetes. She presents for annual cardiac surveillance. Reports intermittent exertional chest tightness over the past 2 months, relieved with rest. No syncopal episodes. Current medications: Metoprolol 50mg BID, Lisinopril 10mg daily, Metformin 1000mg BID, Aspirin 81mg daily."
+    },
+    {
+      "note_type": "examination",
+      "content": "BP 142/88 mmHg, HR 74 bpm, regular rhythm. No S3 or S4 gallop. No jugular venous distension. Lungs clear to auscultation. No lower extremity edema. EF was 55% on last echo 18 months ago."
+    },
+    {
+      "note_type": "assessment",
+      "content": "Stable CAD with new onset exertional chest tightness. Given her cardiac risk profile (CAD, HTN, DM2) and new symptom, ordering comprehensive cardiac workup including repeat echo and stress test to evaluate for ischemia. Prior authorization obtained for all three procedures. Last echo performed 18 months ago."
+    }
+  ]
+}

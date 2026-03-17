@@ -1,0 +1,50 @@
+{
+  "claim_id": "DENIAL-TEST-001",
+  "claim_type": "outpatient",
+  "service_date": "2026-03-17",
+  "total_amount": 1250.00,
+  "prior_authorization_number": null,
+  "patient": {
+    "id": "PAT-99001",
+    "name": "Jane Smith",
+    "dob": "1972-04-10",
+    "member_id": "MEM-44321"
+  },
+  "provider": {
+    "npi": "9876543210",
+    "name": "Dr. Michael Torres",
+    "specialty": "Pain Management"
+  },
+  "insurance": {
+    "payer_id": "AETNA-001",
+    "payer_name": "Aetna",
+    "plan_id": "PPO-2026",
+    "group_number": "GRP-1122",
+    "member_id": "MEM-44321"
+  },
+  "diagnoses": [
+    {
+      "sequence": 1,
+      "code": "M54.5",
+      "description": "Low Back Pain"
+    }
+  ],
+  "procedures": [
+    {
+      "code": "62323",
+      "description": "Lumbar epidural steroid injection",
+      "quantity": 1,
+      "unit_price": 1250.00
+    }
+  ],
+  "clinical_notes": [
+    {
+      "note_type": "history",
+      "content": "Patient reports severe low back pain rated 8/10. Trial of Ibuprofen failed to provide adequate relief."
+    },
+    {
+      "note_type": "assessment",
+      "content": "Patient attempted physical therapy for 10 days with no relief. Conservative therapy has failed. Requesting lumbar epidural steroid injection. Denial reason: Documentation does not support failure of conservative therapy."
+    }
+  ]
+}
