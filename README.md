@@ -6,9 +6,13 @@
 
 ## About the Author
 
-This project was designed and built by a clinician with an **MBBS (Bachelor of Medicine, Bachelor of Surgery)** and a **Master of Health Administration (MHA)** — a rare combination of frontline clinical experience and operational health systems expertise.
+This project was designed and built by an AI engineer with an **MBBS (Bachelor of Medicine, Bachelor of Surgery)** and a **Master of Health Administration (MHA)** — a combination that is uncommon in AI engineering and directly shapes every design decision in this system.
 
-The problem this engine solves is one I have lived on both sides of: as a physician who has had to justify clinical decisions to insurance reviewers, and as a health administrator who has watched billing teams lose thousands of dollars per month to preventable denials. The gap between clinical documentation and payer policy requirements is predictable, measurable, and — with the right AI infrastructure — fixable before a single claim leaves the building.
+The MBBS provides clinical literacy that most engineers have to outsource: a working understanding of disease pathophysiology, procedural medicine, clinical documentation standards, and the language that payers, providers, and policy documents share. This is what makes the RAG prompts, the medical necessity logic, and the appeal letter generation in this engine clinically credible — not just syntactically correct.
+
+The MHA provides the operational and systems layer: how payer structures work, where revenue cycle breaks down, how prior authorization creates friction, and why the denial problem is fundamentally a workflow and information gap problem rather than a clinical one.
+
+As an AI engineer working at the intersection of these two disciplines, the result is a system that does not need a physician consultant to validate its reasoning or a billing expert to sanity-check its outputs. The domain knowledge is built into the architecture.
 
 ---
 

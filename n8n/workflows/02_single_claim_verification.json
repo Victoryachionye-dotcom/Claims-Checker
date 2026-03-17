@@ -1,0 +1,329 @@
+{
+  "name": "02 — Single Claim Verification (On-Demand)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "verify-claim",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0001-0001-0001-000000000001",
+      "name": "Webhook — Receive Claim",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "verify-claim",
+      "notes": "Webhook URL: http://your-n8n-host:5678/webhook/verify-claim\nSend FHIR-structured claim JSON as POST body."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $vars.CLAIMS_API_HOST || 'localhost' }}:{{ $vars.CLAIMS_API_PORT || '8000' }}/verify-claim",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000002",
+      "name": "POST to Claims RAG Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "notes": "Forwards the claim to the FastAPI /verify-claim endpoint.\nSet CLAIMS_API_HOST and CLAIMS_API_PORT in n8n Variables."
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.decision }}",
+                    "operation": "equals",
+                    "value2": "APPROVED"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "APPROVED"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.decision }}",
+                    "operation": "equals",
+                    "value2": "DENIED"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "DENIED"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.decision }}",
+                    "operation": "equals",
+                    "value2": "APPEAL_RECOMMENDED"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "APPEAL_RECOMMENDED"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.decision }}",
+                    "operation": "equals",
+                    "value2": "PENDING_INFO"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "PENDING_INFO"
+            }
+          ],
+          "fallbackOutput": "extra"
+        },
+        "options": {}
+      },
+      "id": "b2c3d4e5-0003-0003-0003-000000000003",
+      "name": "Route by Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.CLEARINGHOUSE_API_URL }}/submit",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.CLEARINGHOUSE_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0004-0004-0004-000000000004",
+      "name": "Submit to Clearinghouse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 100],
+      "notes": "Set CLEARINGHOUSE_API_URL and CLEARINGHOUSE_API_KEY in n8n Variables.\nDisable this node if auto-submission is not yet configured."
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.EMAIL_SENDER }}",
+        "toEmail": "={{ $vars.BILLING_TEAM_EMAIL }}",
+        "subject": "=[DENIED] Claim {{ $json.claim_id }} — {{ $json.denial_code }}",
+        "text": "=A claim has been DENIED by the RAG scrubbing engine.\n\nClaim ID:       {{ $json.claim_id }}\nDecision:       {{ $json.decision }}\nDenial Code:    {{ $json.denial_code }} — {{ $json.denial_code_description }}\nClinical Gap:   {{ $json.clinical_gap }}\nPolicy Ref:     {{ $json.policy_reference }}\nConfidence:     {{ $json.confidence_score }}\nProcessed At:   {{ $json.processed_at }}\n\nREASONING\n---------\n{{ $json.reasoning }}\n\nAPPEAL LETTER (Pre-written)\n----------------------------\n{{ $json.appeal_letter }}\n\n—\nHealthcare Claims RAG Engine",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0005-0005-0005-000000000005",
+      "name": "Email Billing Team — Denied",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 260],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential-id",
+          "name": "SMTP — Billing Reports"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.EMAIL_SENDER }}",
+        "toEmail": "={{ $vars.BILLING_TEAM_EMAIL }}",
+        "subject": "=[APPEAL RECOMMENDED] Claim {{ $json.claim_id }} — Review Required",
+        "text": "=A claim requires billing team review before submission.\n\nClaim ID:       {{ $json.claim_id }}\nDecision:       APPEAL RECOMMENDED\nDenial Code:    {{ $json.denial_code }} — {{ $json.denial_code_description }}\nClinical Gap:   {{ $json.clinical_gap }}\nPolicy Ref:     {{ $json.policy_reference }}\nConfidence:     {{ $json.confidence_score }}\n\nREASONING\n---------\n{{ $json.reasoning }}\n\nSUGGESTED APPEAL\n-----------------\n{{ $json.appeal_letter }}\n\n—\nHealthcare Claims RAG Engine",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0006-0006-0006-000000000006",
+      "name": "Email Billing Team — Appeal",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 380],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential-id",
+          "name": "SMTP — Billing Reports"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.EMAIL_SENDER }}",
+        "toEmail": "={{ $vars.PROVIDER_EMAIL }}",
+        "subject": "=[ACTION REQUIRED] Additional Documentation Needed — Claim {{ $json.claim_id }}",
+        "text": "=Additional clinical documentation is required before this claim can be submitted.\n\nClaim ID:     {{ $json.claim_id }}\nClinical Gap: {{ $json.clinical_gap }}\nPolicy Ref:   {{ $json.policy_reference }}\n\nREASONING\n---------\n{{ $json.reasoning }}\n\nPlease provide the missing documentation at your earliest convenience.\n\n—\nHealthcare Claims RAG Engine",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0007-0007-0007-000000000007",
+      "name": "Email Provider — Request Docs",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 500],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential-id",
+          "name": "SMTP — Billing Reports"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('POST to Claims RAG Engine').item.json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "b2c3d4e5-0008-0008-0008-000000000008",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1160, 300],
+      "notes": "Returns the full ClaimDecision JSON to the original caller."
+    }
+  ],
+  "connections": {
+    "Webhook — Receive Claim": {
+      "main": [
+        [
+          {
+            "node": "POST to Claims RAG Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to Claims RAG Engine": {
+      "main": [
+        [
+          {
+            "node": "Route by Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Decision": {
+      "main": [
+        [
+          {
+            "node": "Submit to Clearinghouse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Billing Team — Denied",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Billing Team — Appeal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Provider — Request Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit to Clearinghouse": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Billing Team — Denied": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Billing Team — Appeal": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Provider — Request Docs": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": ["healthcare", "claims", "webhook", "real-time"],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "healthcare-claims-rag"
+  }
+}

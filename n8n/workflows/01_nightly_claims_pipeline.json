@@ -1,0 +1,202 @@
+{
+  "name": "01 — Nightly Claims Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "55 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Schedule Trigger (23:55 Nightly)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /path/to/healthcare-claims-rag && /path/to/.venv/bin/python scripts/nightly_pipeline.py --source csv 2>&1"
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Run Nightly Pipeline",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "notes": "Update the path to match your server's project location and venv path."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.exitCode }}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Pipeline Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse pipeline stdout to extract summary stats\nconst output = $input.first().json.stdout || '';\n\nconst approved = (output.match(/APPROVED:\\s*(\\d+)/) || [])[1] || '0';\nconst denied = (output.match(/DENIED:\\s*(\\d+)/) || [])[1] || '0';\nconst appeal = (output.match(/APPEAL:\\s*(\\d+)/) || [])[1] || '0';\nconst pending = (output.match(/PENDING:\\s*(\\d+)/) || [])[1] || '0';\nconst errors = (output.match(/ERRORS:\\s*(\\d+)/) || [])[1] || '0';\n\nconst total = parseInt(approved) + parseInt(denied) + parseInt(appeal) + parseInt(pending) + parseInt(errors);\n\nreturn [{\n  json: {\n    approved: parseInt(approved),\n    denied: parseInt(denied),\n    appeal: parseInt(appeal),\n    pending: parseInt(pending),\n    errors: parseInt(errors),\n    total,\n    runDate: new Date().toISOString().split('T')[0],\n    summaryLine: `${approved} Approved | ${denied} Denied | ${appeal} Appeal | ${pending} Pending | ${errors} Errors`\n  }\n}];"
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Parse Pipeline Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.EMAIL_SENDER }}",
+        "toEmail": "={{ $vars.BILLING_TEAM_EMAIL }}",
+        "subject": "=[Claims Report] {{ $json.runDate }} — {{ $json.summaryLine }}",
+        "text": "=Healthcare Claims Batch Processing Report — {{ $json.runDate }}\n\nSUMMARY\n-------\nTotal Claims Processed:    {{ $json.total }}\nApproved (auto-submitted): {{ $json.approved }}\nDenied / Appeal:           {{ $json.denied + $json.appeal }}\nPending Info:              {{ $json.pending }}\nProcessing Errors:         {{ $json.errors }}\n\nACTION REQUIRED\n---------------\n{{ $json.denied + $json.appeal }} claim(s) are in the hold queue awaiting billing team review.\nAppeal letters have been pre-generated for all denied claims.\n\nFull report PDF is attached.\n\n—\nHealthcare Claims RAG Engine\nAutomated report — {{ $json.runDate }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
+      "name": "Email Morning Report to Billing Team",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 200],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential-id",
+          "name": "SMTP — Billing Reports"
+        }
+      },
+      "notes": "Configure SMTP credentials in n8n. Set EMAIL_SENDER and BILLING_TEAM_EMAIL variables."
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "=:white_check_mark: *Claims Pipeline Complete — {{ $('Parse Pipeline Summary').item.json.runDate }}*\n{{ $('Parse Pipeline Summary').item.json.summaryLine }}\n:email: Morning report sent to billing team."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0006-0006-0006-000000000006",
+      "name": "Slack — Success Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 360],
+      "notes": "Optional. Set SLACK_WEBHOOK_URL in n8n Variables or leave this node disabled."
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.EMAIL_SENDER }}",
+        "toEmail": "={{ $vars.ADMIN_EMAIL }}",
+        "subject": "=[ALERT] Claims Pipeline FAILED — {{ new Date().toISOString().split('T')[0] }}",
+        "text": "=The nightly claims pipeline failed.\n\nExit code: {{ $('Run Nightly Pipeline').item.json.exitCode }}\n\nError output:\n{{ $('Run Nightly Pipeline').item.json.stderr }}\n\nPlease check the server logs immediately.\n\n—\nHealthcare Claims RAG Engine",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0007-0007-0007-000000000007",
+      "name": "Email Failure Alert to Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 420],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential-id",
+          "name": "SMTP — Billing Reports"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (23:55 Nightly)": {
+      "main": [
+        [
+          {
+            "node": "Run Nightly Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Nightly Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Pipeline Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Parse Pipeline Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Failure Alert to Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Pipeline Summary": {
+      "main": [
+        [
+          {
+            "node": "Email Morning Report to Billing Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack — Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "tags": ["healthcare", "claims", "nightly", "automation"],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "healthcare-claims-rag"
+  }
+}
