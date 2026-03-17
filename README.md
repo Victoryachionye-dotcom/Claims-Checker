@@ -20,6 +20,8 @@ As an AI engineer working at the intersection of these two disciplines, the resu
 
 ![n8n Workflow — Agentic Healthcare Claims Engine](assets/n8n_workflow.png)
 
+*The n8n workflow orchestrates the full nightly pipeline: a Schedule trigger fires at 11:55 PM, pulling claims from the EHR and passing them through the RAG scrubbing engine. Claude evaluates each claim against the relevant CMS LCD/NCD policy and returns a structured decision. An IF node then routes the result — approved claims are forwarded automatically to the clearinghouse, while denied or flagged claims are held in a queue with a pre-written appeal letter attached. A morning report is dispatched to the billing team by 6 AM, so staff arrive to decisions, not a manual review queue.*
+
 ---
 
 ## What This Is
